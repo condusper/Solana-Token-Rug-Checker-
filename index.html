@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Scan any Solana token mint for rug-pull risk signals: authorities, liquidity, top 10 holders and more." />
+  <meta name="theme-color" content="#fbfbfd" />
+  <title>Rug Checker — Solana token risk scanner</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="aurora" aria-hidden="true">
+    <span></span><span></span><span></span><span></span>
+  </div>
+
+  <header class="site-header">
+    <nav class="nav" aria-label="Primary">
+      <a class="brand" href="#" aria-label="Rug Checker home">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 3l7 3v5c0 4.2-2.8 7.6-7 9-4.2-1.4-7-4.8-7-9V6l7-3z" />
+            <path d="M9.2 12.2l2 2 3.6-3.9" />
+          </svg>
+        </span>
+        <span class="brand-text">
+          <span class="brand-name">Rug Checker</span>
+          <span class="brand-sub">Solana token risk scanner</span>
+        </span>
+      </a>
+      <div class="nav-right">
+        <a class="ghost-link" href="https://rugcheck.xyz" target="_blank" rel="noopener noreferrer">Data by RugCheck</a>
+        <div class="wallet" id="wallet">
+          <button id="wallet-connect" class="wallet-btn" type="button">
+            <span class="wallet-btn-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M15 3h4a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1h-4" />
+                <path d="M10 17l5-5-5-5" />
+                <path d="M15 12H3" />
+              </svg>
+            </span>
+            <span id="wallet-connect-label">Connect Wallet</span>
+          </button>
+          <div id="wallet-account" class="wallet-account" hidden>
+            <button id="wallet-chip" class="wallet-chip" type="button" aria-haspopup="true" aria-expanded="false">
+              <span class="wallet-dot" aria-hidden="true"></span>
+              <span id="wallet-address">—</span>
+              <span id="wallet-balance" class="wallet-balance"></span>
+              <span class="wallet-caret" aria-hidden="true">▾</span>
+            </button>
+            <div id="wallet-menu" class="wallet-menu" hidden>
+              <div class="wallet-menu-addr" id="wallet-menu-addr"></div>
+              <button id="wallet-copy" type="button">Copy address</button>
+              <a id="wallet-explorer" href="#" target="_blank" rel="noopener noreferrer">View on Solscan</a>
+              <button id="wallet-disconnect" type="button">Disconnect</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <main class="shell">
+    <section class="hero">
+      <p class="eyebrow">On-chain intelligence</p>
+      <h1 class="hero-title">Is this token a rug?</h1>
+      <p class="hero-sub">Scan any Solana mint for authorities, liquidity, top 10 holders, and rug-pull risk signals — in seconds.</p>
+
+      <form id="search-form" class="search-bar" autocomplete="off">
+        <input
+          id="mint-input"
+          type="text"
+          inputmode="text"
+          placeholder="Token mint address, e.g. DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263"
+          spellcheck="false"
+          aria-label="Solana token mint address"
+        />
+        <button type="submit" id="scan-btn">Scan</button>
+      </form>
+
+      <div class="examples" id="examples">
+        <span class="examples-label">Try</span>
+        <button class="chip" data-mint="DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263">BONK</button>
+        <button class="chip" data-mint="EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm">WIF</button>
+        <button class="chip" data-mint="2EUQsPgWEvDC29Gf3K57yqiZqfecjioWVFDPMmCk4Sep">Risky example</button>
+      </div>
+    </section>
+
+    <section class="watchlist" id="watchlist" aria-labelledby="watchlist-title">
+      <div class="watchlist-head">
+        <div>
+          <h2 id="watchlist-title" class="section-title">Low-risk candidates</h2>
+          <p class="section-sub">Market cap <strong>$100k–$300k</strong> · pair age <strong>&gt; 1h</strong> · auto-screened every 2 minutes</p>
+        </div>
+        <div class="watchlist-meta">
+          <span class="watchlist-updated" id="watchlist-updated">—</span>
+          <button id="watchlist-refresh" class="ghost-btn" type="button">Refresh</button>
+        </div>
+      </div>
+      <div id="watchlist-status" class="watchlist-status" role="status" aria-live="polite">
+        <span class="spinner"></span><span>Finding low-risk candidates…</span>
+      </div>
+      <div id="watchlist-grid" class="watchlist-grid"></div>
+      <p class="disclaimer">Screened automatically from public on-chain signals (authorities, LP lock, holder concentration, risk flags). These are <strong>not</strong> buy recommendations or financial advice — always do your own research.</p>
+    </section>
+
+    <section id="status" class="status" hidden></section>
+
+    <section id="results" class="results" hidden></section>
+
+    <section class="recent-wrap" id="recent-wrap" hidden>
+      <div class="section-head">
+        <h3>Recent scans</h3>
+        <button id="clear-recent" class="text-btn" type="button">Clear</button>
+      </div>
+      <div id="recent-list" class="recent-list"></div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>Risk data is provided by the public RugCheck.xyz API and is informational only. This is not financial advice — always do your own research.</p>
+  </footer>
+
+  <div id="trade-modal" class="modal" hidden>
+    <div class="modal-backdrop" data-close-trade></div>
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="trade-title">
+      <button class="modal-close" data-close-trade type="button" aria-label="Close trade panel">×</button>
+      <div class="trade-head">
+        <div class="trade-logo fallback" id="trade-logo">?</div>
+        <div class="trade-head-text">
+          <h3 id="trade-title" class="trade-title">Trade token</h3>
+          <div class="trade-sub" id="trade-sub">Connect to begin</div>
+        </div>
+      </div>
+
+      <div class="trade-tabs" role="tablist">
+        <button class="trade-tab active" data-mode="buy" type="button">Buy</button>
+        <button class="trade-tab" data-mode="sell" type="button">Sell</button>
+      </div>
+
+      <div class="trade-body">
+        <div class="trade-label-row">
+          <label class="trade-label" id="trade-amount-label" for="trade-amount">Amount (SOL)</label>
+          <span class="trade-balance-hint" id="trade-balance-hint"></span>
+        </div>
+        <div class="trade-input-row">
+          <input id="trade-amount" class="trade-input" type="number" min="0" step="any" inputmode="decimal" placeholder="0.0" />
+          <span class="trade-unit" id="trade-unit">SOL</span>
+        </div>
+        <div class="trade-quick" id="trade-quick"></div>
+        <div class="trade-quote" id="trade-quote" hidden></div>
+        <div class="trade-status" id="trade-status" hidden></div>
+        <button id="trade-submit" class="trade-submit" type="button" disabled>Connect wallet to trade</button>
+      </div>
+
+      <p class="trade-warn">Routes are built by Jupiter and signed in your Phantom wallet. Verify the mint and risk signals first — this is not financial advice.</p>
+    </div>
+  </div>
+
+  <div id="toast" class="toast" hidden></div>
+
+  <script src="app.js"></script>
+  <script type="module" src="wallet.js"></script>
+</body>
+</html>
